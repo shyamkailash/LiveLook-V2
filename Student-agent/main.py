@@ -1,8 +1,12 @@
 import time
-from datetime import datetime, timezone
 
 from collectors.active_window import get_active_window
+from events.builder import build_activity_event
 from policy.evaluator import evaluate_activity, load_policy
+from storage.offline_queue import (
+    get_pending_event_count,
+    save_event,
+)
 
 
 def main():
@@ -10,6 +14,11 @@ def main():
 
     policy = load_policy()
     previous_activity = None
+
+    print(
+        f"[QUEUE] Pending offline events: "
+        f"{get_pending_event_count()}"
+    )
 
     try:
         while True:
@@ -23,14 +32,24 @@ def main():
             if activity_key != previous_activity:
                 decision = evaluate_activity(activity, policy)
 
-                event = {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "activity": activity,
-                    "status": decision["status"],
-                    "reason": decision["reason"],
-                }
+                print(
+                    f"[{decision['status'].upper()}] "
+                    f"{decision['reason']}"
+                )
 
-                print(event)
+                if decision["status"] in {"blocked", "warning"}:
+                    event = build_activity_event(
+                        activity,
+                        decision,
+                    )
+
+                    save_event(event)
+
+                    print(
+                        f"[QUEUE] Event saved: "
+                        f"{event['event_id']}"
+                    )
+
                 previous_activity = activity_key
 
             time.sleep(2)

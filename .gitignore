@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .env
 offline_events.json
+Student-agent/data/*.jsonl
