@@ -1,0 +1,18 @@
+export const routes = {
+  login: "/login",
+  signup: "/signup",
+  forgotPassword: "/forgot-password",
+  dashboard: "/dashboard",
+  monitoring: "/monitoring",
+  liveMonitoring: "/live-monitoring",
+  sessions: "/sessions",
+  events: "/events",
+  students: "/monitoring",
+  alerts: "/events",
+  analytics: "/analytics",
+  devices: "/devices",
+  policies: "/policies",
+  reports: "/reports",
+  settings: "/settings",
+  profile: "/profile",
+} as const;
