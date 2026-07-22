@@ -1,5 +1,5 @@
 agent_config.json
-data/capture_test.jpg
+**/data/capture_test.jpg
 __pycache__/
 *.pyc
 .venv/
