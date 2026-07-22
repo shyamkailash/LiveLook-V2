@@ -23,6 +23,14 @@ message for malformed or unsupported input without closing the connection.
 - `getFrames` / `get_frames`: receives the latest memory-only frames batch.
 - `ping`: receives `{ "type": "pong" }`.
 
+The React dashboard uses the authenticated Firebase user's UID as `teacherId`.
+When Firebase is not configured during local development, it uses the stable
+`development-teacher` fallback. This fallback is not an authentication mechanism.
+
+The teacher endpoint is configured with `VITE_WS_TEACHER_URL` and defaults to
+`ws://localhost:8000/ws/teacher`. A LAN deployment should override it in the
+ignored `frontend/.env`; HTTPS deployments must use a `wss://` value.
+
 ## Backend to teachers
 
 - `student_joined`: a `student` object containing `student_id`, `name`, `pc`,

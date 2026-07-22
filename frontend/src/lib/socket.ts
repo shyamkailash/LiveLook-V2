@@ -1,6 +1,7 @@
-import { LiveSocket } from "@/lib/websocket";
-import type { MonitoringStudent } from "@/types/monitoring";
+import { TeacherLiveSocket } from "@/lib/websocket";
 
-export const monitoringSocket = new LiveSocket<MonitoringStudent>(
-  import.meta.env.VITE_WS_URL ?? "ws://localhost:8080/monitoring",
-);
+const teacherSocketUrl =
+  (import.meta.env.VITE_WS_TEACHER_URL as string | undefined)?.trim()
+  || "ws://localhost:8000/ws/teacher";
+
+export const monitoringSocket = new TeacherLiveSocket(teacherSocketUrl);

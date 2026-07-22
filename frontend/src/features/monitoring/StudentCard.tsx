@@ -118,7 +118,7 @@ export function StudentCard({
             <div className="px-4 pt-4">
               <div className="mb-3 flex items-center justify-between gap-3 text-xs text-muted">
                 <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1">Live desktop stream</span>
-                <span>{student.connection === "offline" ? "offline" : `${student.fps} fps`}</span>
+                <span>{student.connection === "offline" ? "offline" : student.frame ? "live" : "waiting"}</span>
               </div>
               <DevicePreview student={student} />
             </div>
