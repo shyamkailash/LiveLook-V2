@@ -1,0 +1,40 @@
+# LiveLook WebSocket contract
+
+All timestamps emitted by the backend are ISO-8601 UTC values. Continuous JPEG
+frames are held only in backend memory and are never written to Firestore.
+
+## Student Agent to backend (`/ws/student`)
+
+- `register`: `studentId`, `name`, `pc`, and optional `sessionId`. Snake-case
+  aliases (`student_id`, `student_name`, `pc_name`, `session_id`) are accepted.
+- `heartbeat`: no additional fields. Refreshes `last_seen`.
+- `frame`: `frame` contains a Base64 JPEG without a data-URL prefix. Receiving a
+  frame refreshes both `last_seen` and `last_frame_at`.
+- `activity`: `activeWindow` (or `active_window`) updates the current window.
+- `ping`: receives `{ "type": "pong" }`.
+
+The backend responds to registration with `registered`, and returns an `error`
+message for malformed or unsupported input without closing the connection.
+
+## Teacher dashboard to backend (`/ws/teacher`)
+
+- `register`: `teacherId` (or `teacher_id`).
+- `getStudents` / `get_students`: receives `studentList`.
+- `getFrames` / `get_frames`: receives the latest memory-only frames batch.
+- `ping`: receives `{ "type": "pong" }`.
+
+## Backend to teachers
+
+- `student_joined`: a `student` object containing `student_id`, `name`, `pc`,
+  `session_id`, `status`, `last_seen`, `last_frame_at`, and `active_window`.
+- `studentList`: `students` contains the same student objects.
+- `frame`: `student_id`, `session_id`, `name`, `pc`, `status`, `timestamp`, and
+  the Base64 JPEG `frame`.
+- `frames`: `data` contains the latest frame object for each student.
+- `student_disconnected`: `student_id`, `session_id`, and `timestamp`.
+- `incident` is reserved for Phase 4/5 and will carry a validated `incident`
+  object; the backend does not fabricate detector events.
+
+Students are considered offline after 15 seconds without a heartbeat or frame.
+Explicit disconnects are broadcast immediately. Existing camel-case request
+names and the legacy `studentList`/`frames` responses remain supported.
