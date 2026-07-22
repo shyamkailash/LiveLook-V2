@@ -11,14 +11,17 @@ const filters = ["all", "critical", "high", "medium", "low"] as const;
 
 export function AlertsPage() {
   const { data = [] } = useQuery({ queryKey: ["alerts"], queryFn: getAlerts, refetchInterval: 9000 });
-  const { filter, setFilter } = useAlertStore();
+  const { filter, setFilter, liveAlerts } = useAlertStore();
   const [query, setQuery] = useState("");
 
-  const alerts = useMemo(() => data.filter((alert) => {
+  const alerts = useMemo(() => {
+    const merged = [...liveAlerts, ...data.filter((item) => !liveAlerts.some((live) => live.id === item.id))];
+    return merged.filter((alert) => {
     const matchesFilter = filter === "all" || alert.level === filter;
     const matchesQuery = [alert.student, alert.systemNumber, alert.reason].join(" ").toLowerCase().includes(query.toLowerCase());
-    return matchesFilter && matchesQuery;
-  }), [data, filter, query]);
+      return matchesFilter && matchesQuery;
+    });
+  }, [data, filter, liveAlerts, query]);
 
   return (
     <div>

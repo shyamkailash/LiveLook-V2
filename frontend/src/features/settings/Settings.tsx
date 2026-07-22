@@ -49,8 +49,8 @@ export function Settings() {
     aiSensitivity: saved.aiSensitivity ?? aiSensitivity,
     autoRefresh: saved.autoRefresh ?? true,
     highlightSuspicious: saved.highlightSuspicious ?? true,
-    apiUrl: saved.apiUrl ?? "http://localhost:8080/api",
-    websocketUrl: saved.websocketUrl ?? "ws://localhost:8080/monitoring",
+    apiUrl: saved.apiUrl ?? import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+    websocketUrl: saved.websocketUrl ?? import.meta.env.VITE_WS_TEACHER_URL ?? "ws://localhost:8000/ws/teacher",
     reconnectTimeout: saved.reconnectTimeout ?? 8,
     heartbeatInterval: saved.heartbeatInterval ?? 15,
   });

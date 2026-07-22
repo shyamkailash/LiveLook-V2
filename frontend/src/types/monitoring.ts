@@ -3,6 +3,8 @@ export type ConnectionState = "online" | "unstable" | "offline";
 
 export interface MonitoringStudent {
   id: string;
+  studentId: string;
+  sessionId: string;
   name: string;
   rollNumber: string;
   department: string;
@@ -22,4 +24,6 @@ export interface MonitoringStudent {
   keyboardActivity: number;
   network: number;
   processes: string[];
+  frame: string | null;
+  frameReceivedAt: string;
 }

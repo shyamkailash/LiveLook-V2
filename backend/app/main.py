@@ -1,13 +1,35 @@
+import os
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
 from app.websocket.student_ws import router as student_router
 from app.websocket.teacher_ws import router as teacher_router
+from app.routes.incidents import router as incidents_router
+from app.routes.reports import router as reports_router
 
 
 app = FastAPI(
     title="LiveLook Backend",
     version="1.0.0",
+)
+
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -250,3 +272,5 @@ def websocket_test():
 
 app.include_router(student_router)
 app.include_router(teacher_router)
+app.include_router(incidents_router)
+app.include_router(reports_router)

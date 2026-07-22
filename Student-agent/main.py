@@ -2,9 +2,13 @@
 
 import logging
 import sys
+import threading
+from datetime import datetime, timezone
 
 from collectors.screen_capture import capture_frame
 from config import AgentConfig
+from collectors.active_window import get_active_window
+from policy.evaluator import evaluate_activity, load_policy
 from transport.websocket_client import StudentWebSocketClient
 
 
@@ -50,6 +54,39 @@ def main() -> None:
         )
 
     client = StudentWebSocketClient(config=cfg, capture_fn=_capture)
+
+    def _monitor_policy() -> None:
+        policy = load_policy()
+        last_reported = None
+        while not client.wait(2.0):
+            activity = get_active_window()
+            decision = evaluate_activity(activity, policy)
+            activity_key = (
+                activity.get("process_name"),
+                activity.get("window_title"),
+            )
+            if decision.get("status") != "blocked":
+                last_reported = None
+                continue
+            if activity_key == last_reported:
+                continue
+            evidence_frame = _capture()
+            incident = {
+                "incident_type": "unauthorized_application",
+                "severity": "high",
+                "description": decision.get("reason", "Unauthorized application detected"),
+                "detected_at": datetime.now(timezone.utc).isoformat(),
+            }
+            if evidence_frame:
+                incident["evidence_frame"] = evidence_frame
+            if client.send_incident(incident):
+                last_reported = activity_key
+
+    threading.Thread(
+        target=_monitor_policy,
+        name="policy-monitor",
+        daemon=True,
+    ).start()
     try:
         client.run()
     except KeyboardInterrupt:

@@ -5,3 +5,6 @@ __pycache__/
 .env
 offline_events.json
 Student-agent/data/*.jsonl
+backend/data/
+backend/reports/
+backend/*.tmp

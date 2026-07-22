@@ -69,6 +69,26 @@ class StudentWebSocketClient:
                 if "already closed" not in str(exc).lower():
                     logger.warning("WebSocket close during shutdown failed: %s", exc)
 
+    def wait(self, timeout: float) -> bool:
+        """Wait for shutdown; returns True when the agent is stopping."""
+        return self._stop_event.wait(timeout=timeout)
+
+    def send_incident(self, incident: dict) -> bool:
+        ws = self._ws
+        if ws is None or not self._registered or self._stop_event.is_set():
+            return False
+        try:
+            ws.send(json.dumps({"type": "incident", "incident": incident}))
+            logger.info(
+                "Sent incident type=%s severity=%s",
+                incident.get("incident_type"),
+                incident.get("severity"),
+            )
+            return True
+        except Exception:
+            logger.exception("Incident send failed")
+            return False
+
     def _connect_loop(self) -> None:
         while not self._stop_event.is_set():
             if not self._connect_lock.acquire(blocking=False):
@@ -132,6 +152,8 @@ class StudentWebSocketClient:
         elif message_type == "error":
             logger.error("Server error: %s", payload.get("message", "unknown error"))
             self._registered = False
+        elif message_type == "incident_ack":
+            logger.info("Incident accepted: %s", payload.get("incident_id", "unknown"))
         else:
             logger.debug("Unhandled WebSocket message type: %s", message_type)
 
