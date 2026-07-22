@@ -1,0 +1,14 @@
+{
+  "student_id": "22CS101",
+  "name": "Shyam Kailash",
+  "pc": "STUDENT-PC-01",
+  "session_id": "HACKSPRINT-DEMO",
+  "ws_url": "ws://127.0.0.1:8000/ws/student",
+  "capture_interval": 2.0,
+  "max_frame_width": 1280,
+  "jpeg_quality": 60,
+  "heartbeat_interval": 15.0,
+  "reconnect_base_delay": 1.0,
+  "reconnect_max_delay": 60.0,
+  "reconnect_max_attempts": 0
+}
