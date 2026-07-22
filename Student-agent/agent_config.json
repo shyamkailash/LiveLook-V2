@@ -1,0 +1,14 @@
+{
+  "student_id": "22CS102",
+  "name": "Other Student",
+  "pc": "STUDENT-PC-02",
+  "session_id": "HACKSPRINT-DEMO",
+  "ws_url": "ws://10.20.23.55:8000/ws/student",
+  "capture_interval": 2.0,
+  "max_frame_width": 960,
+  "jpeg_quality": 50,
+  "heartbeat_interval": 10.0,
+  "reconnect_base_delay": 1.0,
+  "reconnect_max_delay": 30.0,
+  "reconnect_max_attempts": 10
+}
