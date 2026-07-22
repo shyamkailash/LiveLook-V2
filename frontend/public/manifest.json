@@ -1,0 +1,15 @@
+{
+  "name": "AI SYSTEM MONITOR",
+  "short_name": "AI Monitor",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#131A27",
+  "theme_color": "#131A27",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "96x96",
+      "type": "image/svg+xml"
+    }
+  ]
+}
