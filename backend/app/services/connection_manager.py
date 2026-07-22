@@ -1,0 +1,99 @@
+from datetime import datetime
+from fastapi import WebSocket
+
+
+class ConnectionManager:
+    def __init__(self):
+        self.students = {}
+        self.teachers = {}
+
+    async def connect_student(
+        self,
+        websocket: WebSocket,
+        student_id: str,
+        name: str,
+        pc: str
+    ):
+
+        self.students[student_id] = {
+            "websocket": websocket,
+            "student_id": student_id,
+            "name": name,
+            "pc": pc,
+            "status": "online",
+            "last_seen": datetime.now(),
+            "active_window": None,
+            "frame": None
+        }
+
+        print(f"Student connected: {name} ({student_id})")
+
+    def update_frame(self, student_id: str, frame: str):
+
+        if student_id in self.students:
+            self.students[student_id]["frame"] = frame
+
+    def update_activity(self, student_id: str, active_window: str):
+
+        if student_id in self.students:
+            self.students[student_id]["active_window"] = active_window
+
+    async def broadcast_frame(self, student_id: str):
+
+        if student_id not in self.students:
+            return
+
+        student = self.students[student_id]
+
+        message = {
+            "type": "frame",
+            "student_id": student["student_id"],
+            "name": student["name"],
+            "pc": student["pc"],
+            "frame": student["frame"]
+        }
+
+        disconnected = []
+
+        for teacher_id, websocket in self.teachers.items():
+            try:
+                await websocket.send_json(message)
+            except:
+                disconnected.append(teacher_id)
+
+        for teacher_id in disconnected:
+            self.disconnect_teacher(teacher_id)
+
+    async def connect_teacher(self, websocket: WebSocket, teacher_id: str):
+
+        self.teachers[teacher_id] = websocket
+
+        print(f"Teacher connected: {teacher_id}")
+
+    def disconnect_student(self, student_id: str):
+
+        if student_id in self.students:
+            del self.students[student_id]
+            print(f"Student disconnected: {student_id}")
+
+    def disconnect_teacher(self, teacher_id: str):
+
+        if teacher_id in self.teachers:
+            del self.teachers[teacher_id]
+            print(f"Teacher disconnected: {teacher_id}")
+
+    def get_students(self):
+
+        return [
+            {
+                "student_id": student["student_id"],
+                "name": student["name"],
+                "pc": student["pc"],
+                "status": student["status"],
+                "active_window": student["active_window"]
+            }
+            for student in self.students.values()
+        ]
+
+
+manager = ConnectionManager()
