@@ -1,0 +1,19 @@
+{
+  "allowed_processes": [
+    "code.exe",
+    "notepad.exe",
+    "explorer.exe"
+  ],
+  "blocked_processes": [
+    "whatsapp.exe",
+    "telegram.exe",
+    "discord.exe"
+  ],
+  "blocked_window_keywords": [
+    "chatgpt",
+    "gemini",
+    "claude",
+    "youtube",
+    "whatsapp"
+  ]
+}
