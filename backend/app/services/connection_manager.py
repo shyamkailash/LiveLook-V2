@@ -1,3 +1,4 @@
+
 from datetime import datetime
 from fastapi import WebSocket
 
@@ -20,8 +21,9 @@ class ConnectionManager:
         websocket: WebSocket,
         student_id: str,
         name: str,
-        pc: str
-    ):
+        pc: str,
+        allowed_apps: list[str]
+   ):
 
         self.students[student_id] = {
 
@@ -29,6 +31,7 @@ class ConnectionManager:
             "student_id": student_id,
             "name": name,
             "pc": pc,
+            "allowed_apps": allowed_apps,
             "status": "online",
             "last_seen": datetime.now(),
             "active_window": None,
@@ -128,6 +131,18 @@ class ConnectionManager:
         if student_id in self.students:
 
             self.students[student_id]["active_window"] = active_window
+
+            allowed = self.students[student_id].get("allowed_apps", [])
+
+            if allowed:
+
+                window = active_window.lower()
+
+                is_allowed = any(app.lower() in window for app in allowed)
+
+                if not is_allowed:
+
+                    print(f"Violation: {student_id} opened {active_window}")
 
 
 

@@ -39,14 +39,14 @@ def exam_test():
     response_model=ExamResponse
 )
 def create_exam(data: ExamCreate):
-
     return exam_service.create_exam(
         title=data.title,
         subject=data.subject,
         teacher=data.teacher,
-        duration=data.duration
+        duration=data.duration,
+        allowed_apps=data.allowed_apps
     )
-
+    
 
 # ==========================
 # Get All Exams
@@ -80,7 +80,25 @@ def get_exam(exam_id: str):
         )
 
     return exam
+# ==========================
+# Get Allowed Applications
+# ==========================
 
+@router.get("/{exam_id}/allowed-apps")
+def get_allowed_apps(exam_id: str):
+
+    exam = exam_service.get_exam(exam_id)
+
+    if exam is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Exam not found"
+        )
+
+    return {
+        "exam_id": exam_id,
+        "allowed_apps": exam["allowed_apps"]
+    }
 
 # ==========================
 # Start Exam

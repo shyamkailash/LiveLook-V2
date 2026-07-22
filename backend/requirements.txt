@@ -3,3 +3,13 @@ uvicorn[standard]
 websockets
 pydantic
 python-dotenv
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+
+# Database (Supabase PostgreSQL)
+sqlalchemy
+psycopg2-binary
+
+# Optional (Database migrations)
+alembic

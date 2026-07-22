@@ -10,15 +10,15 @@ class ExamCreate(BaseModel):
     subject: str
     teacher: str
     duration: int
-
+    allowed_apps: list[str]
 
 class ExamResponse(BaseModel):
-
     exam_id: str
     title: str
     subject: str
     teacher: str
     duration: int
+    allowed_apps: list[str]
     status: str
 
 
@@ -29,7 +29,7 @@ class ExamDetail(BaseModel):
     subject: str
     teacher: str
     duration: int
-
+    allowed_apps: list[str]
     status: str
 
     students: list[str]

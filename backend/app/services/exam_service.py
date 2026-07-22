@@ -1,7 +1,6 @@
 from datetime import datetime
 from uuid import uuid4
 
-
 class ExamService:
 
     def __init__(self):
@@ -13,11 +12,12 @@ class ExamService:
     # ==========================
 
     def create_exam(
-        self,
-        title: str,
-        subject: str,
-        teacher: str,
-        duration: int
+    self,
+    title: str,
+    subject: str,
+    teacher: str,
+    duration: int,
+    allowed_apps: list[str]
     ):
 
         exam_id = str(uuid4())[:8].upper()
@@ -29,11 +29,9 @@ class ExamService:
             "subject": subject,
             "teacher": teacher,
             "duration": duration,
-
+            "allowed_apps": allowed_apps,
             "status": "scheduled",
-
             "students": [],
-
             "created_at": datetime.now(),
             "started_at": None,
             "ended_at": None

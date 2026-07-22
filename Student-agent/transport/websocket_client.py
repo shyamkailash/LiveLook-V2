@@ -9,7 +9,8 @@ from typing import Callable, Optional
 import websocket
 
 from config import AgentConfig
-
+from collectors.active_window import get_active_window
+from policy.evaluator import evaluate_activity
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,12 @@ class StudentWebSocketClient:
         self,
         config: AgentConfig,
         capture_fn: Callable[[], Optional[str]],
+        allowed_apps: list[str],
     ) -> None:
         self._cfg = config
         self._capture_fn = capture_fn
         self._ws: Optional[websocket.WebSocketApp] = None
+        self._allowed_apps = allowed_apps
         self._registered = False
         self._stop_event = threading.Event()
         self._connect_lock = threading.Lock()
@@ -153,13 +156,41 @@ class StudentWebSocketClient:
 
     def _frame_loop(self) -> None:
         while not self._stop_event.is_set() and self._registered:
-            frame = self._capture_fn()
-            ws = self._ws
-            if frame is not None and ws is not None and self._registered:
-                ws.send(json.dumps(_frame_payload(frame)))
-                logger.debug("Sent frame (%d base64 characters)", len(frame))
-            self._stop_event.wait(timeout=self._cfg.capture_interval)
 
+            # Get current active window
+            activity = get_active_window()
+
+            # Check against teacher's allowed apps
+            result = evaluate_activity(activity, self._allowed_apps)
+
+            # If unauthorized app is detected
+            if result["status"] != "allowed":
+
+                logger.warning(result["reason"])
+
+                ws = self._ws
+                if ws is not None:
+
+                # Send violation to backend
+                    ws.send(json.dumps({
+                        "type": "violation",
+                        "violation": "unauthorized_application",
+                        "reason": result["reason"],
+                        "process": activity.get("process_name"),
+                        "window": activity.get("window_title")
+                    }))
+
+                    # Capture screenshot only during violation
+                    frame = self._capture_fn()
+
+                    if frame is not None:
+                        ws.send(json.dumps({
+                            "type": "frame",
+                            "frame": frame
+                        }))
+
+                # Wait before next check
+                self._stop_event.wait(timeout=self._cfg.capture_interval)
     def _start_heartbeat_loop(self) -> None:
         threading.Thread(
             target=self._heartbeat_loop,

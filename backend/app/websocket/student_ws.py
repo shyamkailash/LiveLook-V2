@@ -40,7 +40,8 @@ async def student_websocket(websocket: WebSocket):
                     websocket=websocket,
                     student_id=student_id,
                     name=message["name"],
-                    pc=message["pc"]
+                    pc=message["pc"],
+                    allowed_apps=message.get("allowed_apps", [])
                 )
 
 
@@ -106,16 +107,43 @@ async def student_websocket(websocket: WebSocket):
             # VIOLATION EVENT
             # =========================
 
-            elif msg_type == "violation":
+            # =========================
+# VIOLATION EVENT
+# =========================
 
+            elif msg_type == "violation":
 
                 await manager.add_violation(
 
                     student_id=student_id,
+                    violation_type=message.get("violation"),
+                    reason=message.get("reason"),
+                    process=message.get("process"),
+                    window=message.get("window")
+            )
 
-                    violation_type=message["event"]
+            # Notify all connected teachers immediately
+            await manager.broadcast_violation(
 
-                )
+                student_id=student_id,
+
+                violation={
+
+                    "type": "violation",
+
+                    "studentId": student_id,
+
+                    "violation": message.get("violation"),
+
+                    "reason": message.get("reason"),
+
+                    "process": message.get("process"),
+
+                    "window": message.get("window")
+
+                }
+
+            )
 
 
     except WebSocketDisconnect:
