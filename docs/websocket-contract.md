@@ -40,8 +40,11 @@ ignored `frontend/.env`; HTTPS deployments must use a `wss://` value.
   the Base64 JPEG `frame`.
 - `frames`: `data` contains the latest frame object for each student.
 - `student_disconnected`: `student_id`, `session_id`, and `timestamp`.
-- `incident` is reserved for Phase 4/5 and will carry a validated `incident`
-  object; the backend does not fabricate detector events.
+- `incident` carries a validated `unauthorized_application` incident object.
+  Student Agents may attach one Base64 JPEG as `evidence_frame`; continuous
+  frames are never persisted. The Student Agent receives `incident_ack` after
+  successful persistence, and teachers receive `{ "type": "incident",
+  "incident": { ... } }`.
 
 Students are considered offline after 15 seconds without a heartbeat or frame.
 Explicit disconnects are broadcast immediately. Existing camel-case request

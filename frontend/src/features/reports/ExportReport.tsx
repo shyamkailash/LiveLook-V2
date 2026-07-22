@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { exportReport } from "@/services/reports.service";
 
 export function ExportReport() {
-  async function handleExport(format: "pdf" | "csv" | "xlsx") {
+  async function handleExport(format: "pdf" | "csv") {
     const result = await exportReport(format);
     if (result.ok) {
-      toast.success(`${format.toUpperCase()} report queued`);
+      toast.success(`${format.toUpperCase()} report downloaded`);
       return;
     }
 
@@ -21,7 +21,7 @@ export function ExportReport() {
         <h2 className="text-lg font-semibold">Export Report</h2>
       </CardHeader>
       <CardContent className="grid grid-cols-3 gap-3">
-        {(["pdf", "csv", "xlsx"] as const).map((format) => (
+        {(["pdf", "csv"] as const).map((format) => (
           <Button key={format} variant="secondary" onClick={() => handleExport(format)}>
             <Download className="h-4 w-4" />
             {format.toUpperCase()}

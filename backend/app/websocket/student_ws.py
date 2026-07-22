@@ -6,7 +6,9 @@ from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from app.services.connection_manager import manager
+from app.services.connection_manager import manager, utc_now
+from app.schemas.incident import IncidentCreate
+from app.services.incident_store import incident_store
 
 
 router = APIRouter()
@@ -63,9 +65,9 @@ async def student_websocket(websocket: WebSocket) -> None:
                 await websocket.send_json(
                     {"type": "registered", "message": "Registration Successful"}
                 )
-            elif msg_type in {"heartbeat", "frame", "activity"} and not student_id:
+            elif msg_type in {"heartbeat", "frame", "activity", "incident"} and not student_id:
                 await _send_error(websocket, "Register before sending student data")
-            elif msg_type in {"heartbeat", "frame", "activity"} and not (
+            elif msg_type in {"heartbeat", "frame", "activity", "incident"} and not (
                 manager.is_current_student_connection(student_id, websocket)
             ):
                 await _send_error(websocket, "Student connection has been replaced")
@@ -82,6 +84,34 @@ async def student_websocket(websocket: WebSocket) -> None:
                 active_window = _field(message, "activeWindow", "active_window")
                 if isinstance(active_window, str):
                     manager.update_activity(student_id, active_window)
+            elif msg_type == "incident":
+                source = message.get("incident")
+                if not isinstance(source, dict):
+                    await _send_error(websocket, "incident must be a JSON object")
+                    continue
+                student = manager.students[student_id]
+                try:
+                    payload = IncidentCreate(
+                        student_id=student_id,
+                        session_id=student["session_id"] or "UNSPECIFIED",
+                        student_name=student["name"],
+                        pc=student["pc"],
+                        incident_type=source.get("incident_type"),
+                        severity=source.get("severity", "high"),
+                        confidence=source.get("confidence"),
+                        description=source.get("description", source.get("reason", "")),
+                        detected_at=source.get("detected_at") or source.get("timestamp") or utc_now(),
+                        source="automatic",
+                        evidence_frame=source.get("evidence_frame") or student.get("frame"),
+                    )
+                    incident = incident_store.create(payload)
+                except (ValueError, TypeError) as exc:
+                    await _send_error(websocket, f"Invalid incident: {exc}")
+                    continue
+                await manager.broadcast({"type": "incident", "incident": incident})
+                await websocket.send_json(
+                    {"type": "incident_ack", "incident_id": incident["incident_id"]}
+                )
             elif msg_type == "ping":
                 await websocket.send_json({"type": "pong"})
             else:

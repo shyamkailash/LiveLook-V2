@@ -43,6 +43,21 @@ class TestPayloads:
     def test_heartbeat_payload(self):
         assert _heartbeat_payload() == {"type": "heartbeat"}
 
+    def test_incident_payload_sent_without_logging_frame(self):
+        client = StudentWebSocketClient(CFG, NOOP_CAPTURE)
+        ws = MagicMock()
+        client._ws = ws
+        client._registered = True
+        assert client.send_incident({
+            "incident_type": "unauthorized_application",
+            "severity": "high",
+            "description": "Blocked application detected",
+            "evidence_frame": "FAKE_BASE64",
+        })
+        payload = json.loads(ws.send.call_args.args[0])
+        assert payload["type"] == "incident"
+        assert payload["incident"]["incident_type"] == "unauthorized_application"
+
 
 class TestRegistrationFlow:
     def test_sends_register_on_open(self):

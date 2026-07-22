@@ -1,6 +1,7 @@
 import { auth } from "@/lib/firebase";
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, "")
+  ?? "http://localhost:8000";
 
 function buildUrl(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -65,4 +66,33 @@ export async function apiPost<TPayload, TResponse>(
   } catch {
     return fallback;
   }
+}
+
+export async function apiPatch<TPayload, TResponse>(
+  path: string,
+  payload: TPayload,
+  fallback: TResponse,
+): Promise<TResponse> {
+  try {
+    const response = await fetch(buildUrl(path), {
+      method: "PATCH",
+      headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return response.ok ? unwrapPayload<TResponse>(await response.json()) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function apiDownload(path: string, payload: unknown) {
+  const response = await fetch(buildUrl(path), {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Download failed (${response.status})`);
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "livelook-report";
+  return { blob: await response.blob(), filename };
 }

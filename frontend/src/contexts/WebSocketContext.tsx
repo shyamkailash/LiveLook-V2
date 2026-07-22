@@ -6,6 +6,8 @@ import {
   useMonitoringStore,
   type TeacherSocketStatus,
 } from "@/store/monitoringStore";
+import { mapIncident } from "@/services/alerts.service";
+import { useAlertStore } from "@/store/alertStore";
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -19,6 +21,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const unsubscribeStatus = monitoringSocket.subscribeStatus(handleStatus);
     const unsubscribeMessages = monitoringSocket.subscribe((message) => {
       useMonitoringStore.getState().applyRawMessage(message);
+      if (message && typeof message === "object" && (message as { type?: unknown }).type === "incident") {
+        const alert = mapIncident((message as { incident?: unknown }).incident);
+        if (alert) useAlertStore.getState().upsertAlert(alert);
+      }
     });
     monitoringSocket.connect(user?.uid || "development-teacher");
 
